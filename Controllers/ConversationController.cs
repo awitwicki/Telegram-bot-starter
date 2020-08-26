@@ -18,7 +18,7 @@ namespace Telegram_bot_starter.Controllers.Base
             "/help    - help\n" +
             "/inline   - send inline keyboard\n";
 
-            CoreBot.SendMessage(ChatId, usage, ParseMode.MarkdownV2);
+            SendMessage(ChatId, usage, ParseMode.MarkdownV2);
         }
     }
 }

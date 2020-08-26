@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using Telegram_bot_starter.Core;
 using Telegram_bot_starter.Core.Managers;
 using Telegram_bot_starter.Models;
 
@@ -20,6 +19,7 @@ namespace Telegram_bot_starter.Controllers
             await Task.Delay(1000);
 
             var weather = "The weather now is: " + "⛈🌧❄️☀️☁️"[new Random().Next(4)].ToString();
+            //weather = "The weather now is: ";
             weather += $"\n`{DateTime.Now}`";
             weather += "\n@nameYourBot_bot";
 
@@ -37,9 +37,9 @@ namespace Telegram_bot_starter.Controllers
             bool isEdit = args.ContainsKey(Commands.IsEdit);
 
             if (isEdit)
-                CoreBot.EditMessageText(ChatId, MessageId, weather, ParseMode.Markdown, replyMarkup: inlineKeyboard);
+                EditMessageTextAsync(ChatId, MessageId, weather, ParseMode.Markdown, replyMarkup: inlineKeyboard);
             else
-                CoreBot.SendMessage(ChatId, weather, ParseMode.Markdown, replyMarkup: inlineKeyboard);
+                SendMessage(ChatId, weather, ParseMode.Markdown, replyMarkup: inlineKeyboard);
         }
     }
 }

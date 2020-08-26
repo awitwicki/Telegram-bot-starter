@@ -17,18 +17,14 @@ using Telegram_bot_starter.Models;
 
 namespace Telegram_bot_starter.Core
 {
-    public static class CoreBot
+    public class CoreBot
     {
-        public static TelegramBotClient Bot;
-        private static string AccessToken { get; set; }
+        public TelegramBotClient Bot;
 
-        public static void Init()
+        public CoreBot(string accessToken)
         {
-            //Build 
             Directory.CreateDirectory(Config.DataPath);
-        }
-        public static void StartReceiving()
-        {
+        
             Bot = new TelegramBotClient(Config.TelegramAccessToken);
 
             var me = Bot.GetMeAsync().Result;
@@ -38,24 +34,18 @@ namespace Telegram_bot_starter.Core
             Bot.OnCallbackQuery += BotOnCallbackQueryReceived;
             Bot.OnReceiveError += BotOnReceiveError;
 
-            //ToDo
-            //Bot.OnInlineResultChosen += BotOnChosenInlineResultReceived;
-            //Bot.OnMessageEdited += BotOnMessageReceived;
 
             Bot.StartReceiving(Array.Empty<UpdateType>());
             Console.WriteLine($"Start listening for @{me.Username}");
 
-            CoreBot.SendMessage(Config.AdminId, $"WsizBusBot is started\nBot version `{ApplicationData.BotVersion}.`", ParseMode.Markdown);
-
-            while (true) { }
-            Console.ReadLine();
-
-            CoreBot.Bot.StopReceiving();
+            SendMessage(Config.AdminId, $"CoreBot is started\nBot version `{ApplicationData.BotVersion}.`", ParseMode.Markdown);
         }
+
+        ~CoreBot() => Bot.StopReceiving();
 
         //Save Bot methods
        
-        public static void SendMessage(ChatId chatId, string text, ParseMode parseMode = ParseMode.Default, bool disableWebPagePreview = false, bool disableNotification = false, int replyToMessageId = 0, IReplyMarkup replyMarkup = null, CancellationToken cancellationToken = default)
+        public void SendMessage(ChatId chatId, string text, ParseMode parseMode = ParseMode.Default, bool disableWebPagePreview = false, bool disableNotification = false, int replyToMessageId = 0, IReplyMarkup replyMarkup = null, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -69,7 +59,7 @@ namespace Telegram_bot_starter.Core
                 Console.WriteLine(ex.ToString());
             }
         }
-        public static void EditMessageText(ChatId chatId, int messageId, string text, ParseMode parseMode = ParseMode.Default, bool disableWebPagePreview = false, InlineKeyboardMarkup replyMarkup = null, CancellationToken cancellationToken = default)
+        public void EditMessageText(ChatId chatId, int messageId, string text, ParseMode parseMode = ParseMode.Default, bool disableWebPagePreview = false, InlineKeyboardMarkup replyMarkup = null, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -83,7 +73,7 @@ namespace Telegram_bot_starter.Core
                 Console.WriteLine(ex.ToString());
             }
         }
-        public static void SendLocation(ChatId chatId, float latitude, float longitude, int livePeriod = 0, bool disableNotification = false, int replyToMessageId = 0, IReplyMarkup replyMarkup = null, CancellationToken cancellationToken = default)
+        public void SendLocation(ChatId chatId, float latitude, float longitude, int livePeriod = 0, bool disableNotification = false, int replyToMessageId = 0, IReplyMarkup replyMarkup = null, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -94,7 +84,7 @@ namespace Telegram_bot_starter.Core
                 Console.WriteLine(ex.ToString());
             }
         }
-        public static void EditMessageReplyMarkup(ChatId chatId, int messageId, InlineKeyboardMarkup replyMarkup = null, CancellationToken cancellationToken = default)
+        public void EditMessageReplyMarkup(ChatId chatId, int messageId, InlineKeyboardMarkup replyMarkup = null, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -105,7 +95,7 @@ namespace Telegram_bot_starter.Core
                 Console.WriteLine(ex.ToString());
             }
         }
-        public static void DeleteMessage(ChatId chatId, int messageId, CancellationToken cancellationToken = default)
+        public void DeleteMessage(ChatId chatId, int messageId, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -118,11 +108,11 @@ namespace Telegram_bot_starter.Core
         }
 
         //Handlers
-        private static async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
+        private async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
         {
             var message = messageEventArgs.Message;
 
-            await CoreBot.Bot.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
+            await Bot.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
 
             //Handle stats, access, filters
             if (!CheckMessage(messageEventArgs))
@@ -133,7 +123,7 @@ namespace Telegram_bot_starter.Core
             else
                 HandleMessage(messageEventArgs); //handle simple message 
         }
-        private static async void BotOnCallbackQueryReceived(object sender, CallbackQueryEventArgs callbackQueryEventArgs)
+        private async void BotOnCallbackQueryReceived(object sender, CallbackQueryEventArgs callbackQueryEventArgs)
         {
             var callbackQuery = callbackQueryEventArgs.CallbackQuery;
 
@@ -150,7 +140,7 @@ namespace Telegram_bot_starter.Core
             Console.WriteLine($"{methodName} - {callbackQuery.Data}");
         }
 
-        private static async void Invoker(MessageEventArgs messageEventArgs = null, CallbackQueryEventArgs callbackQueryEventArgs = null)
+        private async void Invoker(MessageEventArgs messageEventArgs = null, CallbackQueryEventArgs callbackQueryEventArgs = null)
         {
             //Get message data
             var chatId = messageEventArgs != null ? messageEventArgs.Message.Chat.Id : callbackQueryEventArgs.CallbackQuery.Message.Chat.Id;
@@ -181,12 +171,13 @@ namespace Telegram_bot_starter.Core
                     //Get and send chatAction from attributes
                     var chatAction = BaseController.GetChatActionAttributes(method);
                     if (chatAction.HasValue)
-                        await CoreBot.Bot.SendChatActionAsync(chatId, chatAction.Value);
+                        await Bot.SendChatActionAsync(chatId, chatAction.Value);
 
                     //Cast controller object
                     var controller = Activator.CreateInstance(controllerType);
 
                     //Set params
+                    ((BaseController)controller).Bot = Bot;
                     ((BaseController)controller).ChatId = chatId;
                     ((BaseController)controller).MessageId = messageId;
                     ((BaseController)controller).User = user;
@@ -210,7 +201,7 @@ namespace Telegram_bot_starter.Core
                 SendMessage(chatId, $"Command `{methodName}` not exists", ParseMode.Markdown);
             }
         }
-        private static bool CheckMessage(MessageEventArgs messageEventArgs = null, CallbackQueryEventArgs callbackQueryEventArgs = null)
+        private bool CheckMessage(MessageEventArgs messageEventArgs = null, CallbackQueryEventArgs callbackQueryEventArgs = null)
         {
             if (messageEventArgs == null && callbackQueryEventArgs == null)
                 return false;
@@ -265,7 +256,7 @@ namespace Telegram_bot_starter.Core
 
             return true;
         }
-        private static async void HandleMessage(MessageEventArgs messageEventArgs)
+        private async void HandleMessage(MessageEventArgs messageEventArgs)
         {
             //Get message data
             var chatId = messageEventArgs.Message.Chat.Id;
@@ -282,11 +273,11 @@ namespace Telegram_bot_starter.Core
             //Get and send chatAction from attributes
             var chatAction = BaseController.GetChatActionAttributes(method);
             if (chatAction.HasValue)
-                await CoreBot.Bot.SendChatActionAsync(chatId, chatAction.Value);
+                await Bot.SendChatActionAsync(chatId, chatAction.Value);
 
             controller.Start(messageEventArgs);
         }
-        private static void BotOnReceiveError(object sender, ReceiveErrorEventArgs receiveErrorEventArgs)
+        private void BotOnReceiveError(object sender, ReceiveErrorEventArgs receiveErrorEventArgs)
         {
             //ToDo logging to file
             Console.WriteLine("Received error: {0} — {1}", receiveErrorEventArgs.ApiRequestException.ErrorCode, receiveErrorEventArgs.ApiRequestException.Message);

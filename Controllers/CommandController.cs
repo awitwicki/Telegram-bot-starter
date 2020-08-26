@@ -6,7 +6,6 @@ using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using Telegram_bot_starter.Core;
 using Telegram_bot_starter.Models;
 
 namespace Telegram_bot_starter.Controllers
@@ -21,7 +20,7 @@ namespace Telegram_bot_starter.Controllers
             "/help    - help\n" +
             "/inline   - send inline keyboard\n";
 
-            CoreBot.SendMessage(ChatId, usage, replyMarkup: new ReplyKeyboardRemove());
+            SendMessage(ChatId, usage, replyMarkup: new ReplyKeyboardRemove());
         }
 
         [MessageReaction(ChatAction.Typing)]
@@ -46,13 +45,13 @@ namespace Telegram_bot_starter.Controllers
                 }
             });
 
-            CoreBot.SendMessage(ChatId, "Choose", replyMarkup: inlineKeyboard);
+            SendMessage(ChatId, "Choose", replyMarkup: inlineKeyboard);
         }
         [MessageReaction(ChatAction.Typing)]
         public void Me(MessageEventArgs message)
         {
             string outpuitString = $"Your id is `{User.Id}`, chatid is `{ChatId}`";
-            CoreBot.SendMessage(ChatId, outpuitString, ParseMode.MarkdownV2);
+            SendMessage(ChatId, outpuitString, ParseMode.MarkdownV2);
         }
         public async Task SendReplyKeyboard(Message message)
         {
@@ -65,9 +64,9 @@ namespace Telegram_bot_starter.Controllers
                     resizeKeyboard: true
                 );
             
-            await CoreBot.Bot.SendTextMessageAsync(
-                chatId: message.Chat.Id,
-                text: "Choose",
+            SendMessage(
+                message.Chat.Id,
+                "Choose",
                 replyMarkup: replyKeyboardMarkup
             );
         }

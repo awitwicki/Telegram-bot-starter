@@ -26,6 +26,7 @@ namespace Telegram_bot_starter.Core.Managers
         {
             Entities.Add(entity);
         }
+
         public void SaveToFileAsync()
         {
             //Save to file

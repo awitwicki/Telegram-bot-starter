@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Telegram.Bot.Args;
 using Telegram_bot_starter.Core.Managers;
 using Telegram_bot_starter.Models;
@@ -11,7 +9,7 @@ namespace Telegram_bot_starter.Core
 {
     public static class ApplicationData
     {
-        public static string BotVersion = "1.0 Alpha";
+        public static string BotVersion = "1.1 Alpha";
         public static FileStorageManager<CoreBotUser> Users { get; set; } = new FileStorageManager<CoreBotUser>(Config.UsersFilePath);
         public static FileStorageManager<Stats> Stats { get; set; } = new FileStorageManager<Stats>(Config.StatsFilePath);
 
@@ -38,7 +36,7 @@ namespace Telegram_bot_starter.Core
                 Users.Add(user);
 
                 Console.WriteLine($"New User {user.Name} {user.UserName}");
-                CoreBot.Bot.SendTextMessageAsync(Config.AdminId, $"New User {user.Name} {user.UserName}");
+                //Bot.SendTextMessageAsync(Config.AdminId, $"New User {user.Name} {user.UserName}");
             }
             else
             {
